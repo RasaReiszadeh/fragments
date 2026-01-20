@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const passport = require('passport');
+const auth = require('./auth');
 
 const logger = require('./logger');
 const pino = require('pino-http')({ logger });
@@ -11,6 +13,9 @@ const app = express();
 app.use(pino);
 app.use(helmet());
 app.use(cors());
+// passpot
+passport.use(auth.strategy());
+app.use(passport.initialize());
 
 // ✅ Use routes folder (NOT require('.'))
 app.use('/', require('./routes'));

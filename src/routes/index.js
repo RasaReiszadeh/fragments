@@ -1,17 +1,15 @@
-// src/routes/index.js
-
 const express = require('express');
 
 // version and author from package.json
 const { version, author } = require('../../package.json');
-
+const { authenticate } = require('../auth');
 // Create a router that we can use to mount our API
 const router = express.Router();
 
 /**
  * Expose all of our API routes on /v1/*
  */
-router.use('/v1', require('./api'));
+router.use('/v1', authenticate(), require('./api'));
 
 /**
  * Health check route
