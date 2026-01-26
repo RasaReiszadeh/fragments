@@ -1,8 +1,4 @@
-// src/routes/api/get.js
-
 module.exports = (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    fragments: [],
-  });
+  console.log('SERVER HIT: GET /v1/fragments', 'user:', req.user);
+  res.status(200).json({ status: 'ok', fragments: [] });
 };
