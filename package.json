@@ -33,6 +33,8 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "helmet": "^8.1.0",
+    "http-auth": "^4.2.1",
+    "http-auth-passport": "^1.0.7",
     "passport": "^0.7.0",
     "passport-http-bearer": "^1.0.1",
     "pino": "^10.1.1",
