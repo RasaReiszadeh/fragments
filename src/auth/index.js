@@ -1,3 +1,5 @@
+// src/auth/index.js
+
 if (
   process.env.AWS_COGNITO_POOL_ID &&
   process.env.AWS_COGNITO_CLIENT_ID &&
@@ -8,10 +10,19 @@ if (
   );
 }
 
+let auth;
+
 if (process.env.AWS_COGNITO_POOL_ID && process.env.AWS_COGNITO_CLIENT_ID) {
-  module.exports = require('./cognito');
+  auth = require('./cognito');
 } else if (process.env.HTPASSWD_FILE && process.env.NODE_ENV !== 'production') {
-  module.exports = require('./basic-auth');
+  auth = require('./basic-auth');
 } else {
   throw new Error('missing env vars: no authorization configuration found');
 }
+
+module.exports = {
+  which: auth.which,
+  strategy: auth.strategy,
+  authenticate: auth.authenticate,
+};
+

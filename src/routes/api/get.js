@@ -1,4 +1,14 @@
-module.exports = (req, res) => {
-  console.log('SERVER HIT: GET /v1/fragments', 'user:', req.user);
-  res.status(200).json({ status: 'ok', fragments: [] });
+const Fragment = require('../../model/fragment');
+
+module.exports = async (req, res, next) => {
+  try {
+    const ownerId = req.user;
+    const fragments = await Fragment.listIds(ownerId);
+
+    req.log.info({ ownerId, count: fragments.length }, 'GET /v1/fragments');
+
+    res.status(200).json({ status: 'ok', fragments });
+  } catch (err) {
+    next(err);
+  }
 };

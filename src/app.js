@@ -14,7 +14,9 @@ app.use(pino);
 app.use(helmet());
 app.use(cors());
 // passpot
-passport.use(auth.strategy());
+const strategyName = auth.which === 'basic' ? 'basic' : 'bearer';
+passport.use(strategyName, auth.strategy());
+
 app.use(passport.initialize());
 
 // ✅ Use routes folder (NOT require('.'))
