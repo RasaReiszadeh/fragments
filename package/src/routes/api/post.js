@@ -3,14 +3,13 @@ const Fragment = require('../../model/fragment');
 
 module.exports = async (req, res, next) => {
   try {
-    // We expect raw bytes (express.raw middleware should be used on this route)
+  
     if (!Buffer.isBuffer(req.body)) {
       const err = new Error('invalid fragment data');
       err.status = 400;
       throw err;
     }
 
-    // Parse and validate Content-Type
     const { type } = contentType.parse(req);
 
     if (!Fragment.isSupportedType(type)) {
