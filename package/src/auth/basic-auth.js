@@ -1,4 +1,4 @@
-// src/auth/basic-auth.js
+
 const auth = require('http-auth');
 const passport = require('passport');
 const authPassport = require('http-auth-passport');
@@ -12,7 +12,7 @@ logger.info('Using HTTP Basic Auth for auth');
 
 module.exports.which = 'basic';
 
-// ✅ Return the strategy so app.js can do: passport.use(auth.strategy());
+
 module.exports.strategy = () =>
   authPassport(
     auth.basic({
@@ -20,5 +20,5 @@ module.exports.strategy = () =>
     })
   );
 
-// ✅ Use the SAME name we register in app.js via passport.use('basic', ...)
+
 module.exports.authenticate = () => passport.authenticate('basic', { session: false });
