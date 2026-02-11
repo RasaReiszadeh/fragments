@@ -1,4 +1,4 @@
-// src/auth/index.js
+
 
 if (
   process.env.AWS_COGNITO_POOL_ID &&
