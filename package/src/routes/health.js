@@ -1,4 +1,4 @@
-// src/routes/health.js
+
 const pkg = require('../../package.json');
 
 module.exports = (req, res) => {
