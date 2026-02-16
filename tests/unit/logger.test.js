@@ -15,7 +15,7 @@ describe('src/logger.js', () => {
     jest.doMock('pino', () => jest.fn(() => ({ mocked: true })));
     delete process.env.FRAGMENTS_LOG_LEVEL;
 
-    // require after mocking
+
     require('../../src/logger');
     const pino = require('pino');
 
