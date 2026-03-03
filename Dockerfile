@@ -1,34 +1,47 @@
-# Dockerfile for Lab 5
+# Step 20 Optimizing based on lecture
+# Rasa Reiszadeh
 
-# Use specific Node version
-FROM node:24.11.0
+# -------- Stage 1: Install Dependencies --------
+FROM node:18-alpine AS deps
 
-# Metadata
 LABEL maintainer="Rasa Reiszadeh <rreiszadeh@myseneca.ca>"
-LABEL description="Fragments node.js microservice"
+LABEL description="Fragments node.js microservice - optimized multistage build"
 
-# Environment defaults
-ENV PORT=8080
-ENV NPM_CONFIG_LOGLEVEL=warn
-ENV NPM_CONFIG_COLOR=false
-
-# Create app directory
 WORKDIR /app
 
-# Copy dependency files
+# Copy package files first (better layer caching)
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install only production dependencies
+RUN npm ci --omit=dev
+
+
+# -------- Stage 2: Runtime --------
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy node_modules from deps stage
+COPY --from=deps /app/node_modules ./node_modules
 
 # Copy source code
 COPY ./src ./src
 
-# Copy htpasswd (needed for basic auth)
+# Copy htpasswd file for basic auth (used in development mode)
 COPY ./tests/.htpasswd ./tests/.htpasswd
 
-# Document exposed port
+# Environment defaults
+ENV PORT=8080
+
 EXPOSE 8080
 
 # Start server
-CMD ["npm", "start"]
+CMD ["node", "src/index.js"]
+
+
+#In Step 20, I optimized my Dockerfile using a multistage build as shown in lecture.
+#I separated dependency installation from the runtime image to reduce image size.
+#I used node:18-alpine instead of the full Node image to make the container smaller.
+#I copied package*.json first to improve Docker layer caching.
+#I used npm ci --omit=dev to install only production dependencies.
+#This makes the image smaller and more efficient for production use.
