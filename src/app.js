@@ -12,8 +12,13 @@ const app = express();
 
 app.use(pino);
 app.use(helmet());
-app.use(cors());
-// passpot
+app.use(
+  cors({
+    origin: '*',
+    exposedHeaders: ['Location'],
+  })
+);
+// passport
 const strategyName = auth.which === 'basic' ? 'basic' : 'bearer';
 passport.use(strategyName, auth.strategy());
 
