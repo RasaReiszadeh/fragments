@@ -14,11 +14,11 @@ describe('Fragment', () => {
     expect(typeof f.updated).toBe('string');
   });
 
-  test('rejects unsupported types', () => {
-    expect(() => Fragment.create({ ownerId: 'u1', type: 'application/json' })).toThrow(
-      /unsupported type/i
-    );
-  });
+test('rejects unsupported types', () => {
+  expect(() => Fragment.create({ ownerId: 'u1', type: 'image/png' })).toThrow(
+    /unsupported type/i
+  );
+});
 
   test('saves and loads by id', async () => {
     const f = Fragment.create({ ownerId: 'u1', type: 'text/plain' });

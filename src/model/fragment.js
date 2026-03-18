@@ -1,8 +1,12 @@
-
 const crypto = require('crypto');
 const data = require('./data');
 
-const SUPPORTED_TYPES = new Set(['text/plain']);
+const SUPPORTED_TYPES = new Set([
+  'text/plain',
+  'text/markdown',
+  'text/html',
+  'application/json',
+]);
 
 class Fragment {
   constructor({ id, ownerId, created, updated, type, size }) {
@@ -19,6 +23,12 @@ class Fragment {
   }
 
   static create({ ownerId, type }) {
+    if (!ownerId) {
+      const err = new Error('ownerId is required');
+      err.status = 400;
+      throw err;
+    }
+
     if (!Fragment.isSupportedType(type)) {
       const err = new Error('unsupported type');
       err.status = 415;
@@ -26,6 +36,7 @@ class Fragment {
     }
 
     const now = new Date().toISOString();
+
     return new Fragment({
       id: crypto.randomUUID(),
       ownerId,
@@ -34,6 +45,37 @@ class Fragment {
       type,
       size: 0,
     });
+  }
+
+  get mimeType() {
+    return this.type;
+  }
+
+  get isText() {
+    return this.type.startsWith('text/');
+  }
+
+  get formats() {
+    const formats = [];
+
+    switch (this.type) {
+      case 'text/plain':
+        formats.push('txt');
+        break;
+      case 'text/markdown':
+        formats.push('md', 'html', 'txt');
+        break;
+      case 'text/html':
+        formats.push('html', 'txt');
+        break;
+      case 'application/json':
+        formats.push('json', 'txt');
+        break;
+      default:
+        break;
+    }
+
+    return formats;
   }
 
   async save() {
@@ -45,11 +87,18 @@ class Fragment {
       type: this.type,
       size: this.size,
     });
+
     return this;
   }
 
-  async setData(buffer) {
-    if (!Buffer.isBuffer(buffer)) {
+  async setData(value) {
+    let buffer;
+
+    if (Buffer.isBuffer(value)) {
+      buffer = value;
+    } else if (typeof value === 'string') {
+      buffer = Buffer.from(value);
+    } else {
       const err = new Error('invalid fragment data');
       err.status = 400;
       throw err;
@@ -60,6 +109,7 @@ class Fragment {
 
     await data.writeFragmentData(this.ownerId, this.id, buffer);
     await this.save();
+
     return this;
   }
 
@@ -68,8 +118,19 @@ class Fragment {
   }
 
   static async byId(ownerId, id) {
-    const meta = await data.readFragment(ownerId, id);
-    return meta ? new Fragment(meta) : null;
+    const fragment = await data.readFragment(ownerId, id);
+    return fragment ? new Fragment(fragment) : null;
+  }
+
+  static async list(ownerId, expand = false) {
+    const ids = await data.listFragments(ownerId);
+
+    if (!expand) {
+      return ids;
+    }
+
+    const fragments = await Promise.all(ids.map((id) => Fragment.byId(ownerId, id)));
+    return fragments.filter(Boolean);
   }
 
   static async listIds(ownerId) {
