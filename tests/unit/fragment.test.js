@@ -51,3 +51,49 @@ test('rejects unsupported types', () => {
     expect(ids).toEqual(expect.arrayContaining([f1.id, f2.id]));
   });
 });
+
+describe('Fragment extra coverage', () => {
+  test('throws when ownerId is missing', () => {
+    expect(() => Fragment.create({ type: 'text/plain' })).toThrow(/ownerId/i);
+  });
+
+  test('mimeType returns the type', () => {
+    const fragment = Fragment.create({ ownerId: 'u1', type: 'text/plain' });
+    expect(fragment.mimeType).toBe('text/plain');
+  });
+
+  test('isText returns true for text fragments', () => {
+    const fragment = Fragment.create({ ownerId: 'u1', type: 'text/plain' });
+    expect(fragment.isText).toBe(true);
+  });
+
+  test('isText returns false for json fragments', () => {
+    const fragment = Fragment.create({ ownerId: 'u1', type: 'application/json' });
+    expect(fragment.isText).toBe(false);
+  });
+
+  test('formats returns expected values for markdown', () => {
+    const fragment = Fragment.create({ ownerId: 'u1', type: 'text/markdown' });
+    expect(fragment.formats).toEqual(expect.arrayContaining(['md', 'html', 'txt']));
+  });
+
+  test('formats returns expected values for json', () => {
+    const fragment = Fragment.create({ ownerId: 'u1', type: 'application/json' });
+    expect(fragment.formats).toEqual(expect.arrayContaining(['json', 'txt']));
+  });
+
+  test('setData throws on invalid data', async () => {
+    const fragment = Fragment.create({ ownerId: 'u1', type: 'text/plain' });
+    await expect(fragment.setData({ bad: true })).rejects.toThrow(/invalid fragment data/i);
+  });
+
+  test('delete removes a fragment', async () => {
+    const fragment = Fragment.create({ ownerId: 'u1', type: 'text/plain' });
+    await fragment.save();
+    await fragment.setData('hello');
+    await fragment.delete();
+
+    const loaded = await Fragment.byId('u1', fragment.id);
+    expect(loaded).toBe(null);
+  });
+});
