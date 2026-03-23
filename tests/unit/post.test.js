@@ -14,7 +14,7 @@ describe('POST /v1/fragments', () => {
   test('authenticated users can create a text/plain fragment', async () => {
     const res = await request(app)
       .post('/v1/fragments')
-      .auth('test-user1@fragments-testing.com', 'test-password1')
+      .auth('test-user1@fragments-testing.com', 'password1')
       .set('Content-Type', 'text/plain')
       .send('hello');
 
@@ -28,7 +28,7 @@ describe('POST /v1/fragments', () => {
   test('authenticated users can create a markdown fragment', async () => {
     const res = await request(app)
       .post('/v1/fragments')
-      .auth('test-user1@fragments-testing.com', 'test-password1')
+      .auth('test-user1@fragments-testing.com', 'password1')
       .set('Content-Type', 'text/markdown')
       .send('# Hello');
 
@@ -39,7 +39,7 @@ describe('POST /v1/fragments', () => {
   test('authenticated users can create a json fragment', async () => {
     const res = await request(app)
       .post('/v1/fragments')
-      .auth('test-user1@fragments-testing.com', 'test-password1')
+      .auth('test-user1@fragments-testing.com', 'password1')
       .set('Content-Type', 'application/json')
       .send(JSON.stringify({ name: 'Rasa' }));
 
@@ -50,7 +50,7 @@ describe('POST /v1/fragments', () => {
   test('unsupported types return 400', async () => {
     const res = await request(app)
       .post('/v1/fragments')
-      .auth('test-user1@fragments-testing.com', 'test-password1')
+      .auth('test-user1@fragments-testing.com', 'password1')
       .set('Content-Type', 'image/png')
       .send(Buffer.from([1, 2, 3]));
 

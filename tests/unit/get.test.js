@@ -10,7 +10,7 @@ describe('GET /v1/fragments', () => {
   test('authenticated users get a fragments array', async () => {
     const res = await request(app)
       .get('/v1/fragments')
-      .auth('test-user1@fragments-testing.com', 'test-password1');
+      .auth('test-user1@fragments-testing.com', 'password1');
 
     expect(res.statusCode).toBe(200);
     expect(res.body.status).toBe('ok');
@@ -20,7 +20,7 @@ describe('GET /v1/fragments', () => {
   test('GET /v1/fragments?expand=1 returns expanded metadata', async () => {
     const create = await request(app)
       .post('/v1/fragments')
-      .auth('test-user1@fragments-testing.com', 'test-password1')
+      .auth('test-user1@fragments-testing.com', 'password1')
       .set('Content-Type', 'text/plain')
       .send('hello expand');
 
@@ -28,7 +28,7 @@ describe('GET /v1/fragments', () => {
 
     const res = await request(app)
       .get('/v1/fragments?expand=1')
-      .auth('test-user1@fragments-testing.com', 'test-password1')
+      .auth('test-user1@fragments-testing.com', 'password1')
 
     expect(res.statusCode).toBe(200);
     expect(res.body.status).toBe('ok');
