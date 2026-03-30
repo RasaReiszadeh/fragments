@@ -1,5 +1,6 @@
-// src/routes/health.js
+
 const pkg = require('../../package.json');
+const { hostname } = require('os');
 
 module.exports = (req, res) => {
   const repoUrl = typeof pkg.repository === 'string' ? pkg.repository : pkg.repository?.url;
@@ -11,5 +12,6 @@ module.exports = (req, res) => {
     author: pkg.author,
     githubUrl,
     version: pkg.version,
+    hostname: hostname(),
   });
 };

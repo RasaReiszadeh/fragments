@@ -1,5 +1,3 @@
-# Rasa Reiszadeh
-
 FROM node:18-alpine AS deps
 
 LABEL maintainer="Rasa Reiszadeh <rreiszadeh@myseneca.ca>"
@@ -19,8 +17,8 @@ COPY package*.json ./
 COPY ./src ./src
 COPY ./tests/.htpasswd ./tests/.htpasswd
 
-ENV PORT=8080
+ENV PORT=80
 
-EXPOSE 8080
+EXPOSE 80
 
 CMD ["node", "src/index.js"]
