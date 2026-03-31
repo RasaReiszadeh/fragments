@@ -1,7 +1,6 @@
 
 const db = require('./memory-db');
 
-// All functions return Promises (async API)
 module.exports = {
   async writeFragment(fragment) {
     db.putFragment(fragment.ownerId, fragment.id, fragment);
