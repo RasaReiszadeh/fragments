@@ -1,7 +1,7 @@
 POST http://localhost:8080/v1/fragments
 Authorization: Basic dXNlcjpwYXNzd29yZA==
 Content-Type: text/plain
-
+[Body]
 Hello S3!
 
 HTTP/1.1 201
