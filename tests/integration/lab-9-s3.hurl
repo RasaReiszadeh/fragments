@@ -1,4 +1,3 @@
-
 POST http://localhost:8080/v1/fragments
 Authorization: Basic dXNlcjpwYXNzd29yZA==
 Content-Type: text/plain
@@ -12,7 +11,6 @@ header "Location" exists
 [Captures]
 fragment_url: header "Location"
 
-
 GET {{fragment_url}}
 Authorization: Basic dXNlcjpwYXNzd29yZA==
 
@@ -21,12 +19,10 @@ HTTP/1.1 200
 header "Content-Type" == "text/plain"
 body == "Hello S3!"
 
-
 DELETE {{fragment_url}}
 Authorization: Basic dXNlcjpwYXNzd29yZA==
 
 HTTP/1.1 200
-
 
 GET {{fragment_url}}
 Authorization: Basic dXNlcjpwYXNzd29yZA==
