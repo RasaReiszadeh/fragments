@@ -57,6 +57,7 @@ jobs:
             NODE_ENV=production
             FRAGMENTS_LOG_LEVEL=debug
             API_URL=http://fragments-lb-1640970532.us-east-2.elb.amazonaws.com
+            AWS_S3_BUCKET_NAME=fragments-rasa-2002
             AWS_COGNITO_POOL_ID=${{ secrets.AWS_COGNITO_POOL_ID }}
             AWS_COGNITO_CLIENT_ID=${{ secrets.AWS_COGNITO_CLIENT_ID }}
 

@@ -4,6 +4,8 @@ services:
     init: true
     build: .
     environment:
+      PORT: 8080
+      NODE_ENV: development
       API_URL: http://localhost:8080
       HTPASSWD_FILE: tests/.htpasswd
       FRAGMENTS_LOG_LEVEL: info
@@ -31,4 +33,3 @@ services:
       SERVICES: s3
       DEFAULT_REGION: us-east-2
       LOCALSTACK_ACKNOWLEDGE_ACCOUNT_REQUIREMENT: "1"
-  

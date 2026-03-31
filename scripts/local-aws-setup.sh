@@ -17,7 +17,7 @@ done
 echo 'LocalStack S3 Ready'
 
 echo "Creating LocalStack S3 bucket: fragments"
-aws --endpoint-url=http://localhost:4566 s3api create-bucket --bucket fragments
+aws --endpoint-url=http://localhost:4566 s3api create-bucket --bucket fragments --create-bucket-configuration LocationConstraint=us-east-2
 
 echo "Creating DynamoDB-Local DynamoDB table: fragments"
 aws --endpoint-url=http://localhost:8000 \
