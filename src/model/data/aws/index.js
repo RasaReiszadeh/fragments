@@ -7,9 +7,7 @@ const {
   DeleteObjectCommand,
 } = require('@aws-sdk/client-s3');
 
-
 const db = MemoryDB;
-
 
 const streamToBuffer = (stream) =>
   new Promise((resolve, reject) => {
@@ -19,7 +17,6 @@ const streamToBuffer = (stream) =>
     stream.on('error', reject);
     stream.on('end', () => resolve(Buffer.concat(chunks)));
   });
-
 
 module.exports = {
   async writeFragment(fragment) {
@@ -41,12 +38,23 @@ module.exports = {
     const command = new PutObjectCommand(params);
 
     try {
+      logger.info(
+        { Bucket: params.Bucket, Key: params.Key },
+        'Uploading fragment data to S3'
+      );
+
       await s3Client.send(command);
+
+      logger.info(
+        { Bucket: params.Bucket, Key: params.Key },
+        'Successfully uploaded fragment data to S3'
+      );
+
       return buffer.length;
     } catch (err) {
       const { Bucket, Key } = params;
       logger.error({ err, Bucket, Key }, 'Error uploading fragment data to S3');
-      throw new Error('unable to upload fragment data');
+      throw err;
     }
   },
 
@@ -59,12 +67,17 @@ module.exports = {
     const command = new GetObjectCommand(params);
 
     try {
+      logger.info(
+        { Bucket: params.Bucket, Key: params.Key },
+        'Reading fragment data from S3'
+      );
+
       const data = await s3Client.send(command);
       return streamToBuffer(data.Body);
     } catch (err) {
       const { Bucket, Key } = params;
       logger.error({ err, Bucket, Key }, 'Error streaming fragment data from S3');
-      throw new Error('unable to read fragment data');
+      throw err;
     }
   },
 
@@ -81,12 +94,17 @@ module.exports = {
     const command = new DeleteObjectCommand(params);
 
     try {
+      logger.info(
+        { Bucket: params.Bucket, Key: params.Key },
+        'Deleting fragment data from S3'
+      );
+
       await s3Client.send(command);
       db.deleteFragment(ownerId, id);
     } catch (err) {
       const { Bucket, Key } = params;
       logger.error({ err, Bucket, Key }, 'Error deleting fragment data from S3');
-      throw new Error('unable to delete fragment');
+      throw err;
     }
   },
 };
