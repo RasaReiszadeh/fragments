@@ -1,48 +1,41 @@
-#!/bin/sh
+#!/bin/bash
 
-# Setup steps for working with LocalStack and DynamoDB local instead of AWS.
-# Assumes aws cli is installed and LocalStack and DynamoDB local are running.
+set -e
 
-# Setup AWS environment variables
 echo "Setting AWS environment variables for LocalStack"
-
-echo "AWS_ACCESS_KEY_ID=test"
 export AWS_ACCESS_KEY_ID=test
-
-echo "AWS_SECRET_ACCESS_KEY=test"
 export AWS_SECRET_ACCESS_KEY=test
-
 export AWS_DEFAULT_REGION=us-east-2
-echo "AWS_DEFAULT_REGION=us-east-2"
 
-# Wait for LocalStack to be ready, by inspecting the response from healthcheck
-echo 'Waiting for LocalStack S3...'
-until (curl --silent http://localhost:4566/_localstack/health | grep "\"s3\": \"\(running\|available\)\"" > /dev/null); do
-    sleep 5
+S3_ENDPOINT="http://localhost:4566"
+DDB_ENDPOINT="http://localhost:8000"
+BUCKET_NAME="fragments"
+TABLE_NAME="fragments"
+
+echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID"
+echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY"
+echo "AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION"
+
+echo "Waiting for LocalStack S3..."
+until aws --endpoint-url=$S3_ENDPOINT s3api list-buckets > /dev/null 2>&1; do
+  sleep 2
 done
-echo 'LocalStack S3 Ready'
+echo "LocalStack S3 Ready"
 
-# Create our S3 bucket with LocalStack
-echo "Creating LocalStack S3 bucket: fragments"
-aws --endpoint-url=http://localhost:4566 s3api create-bucket \
-  --bucket fragments \
-  --region us-east-2 \
-  --create-bucket-configuration LocationConstraint=us-east-2
+echo "Creating LocalStack S3 bucket: $BUCKET_NAME"
+aws --endpoint-url=$S3_ENDPOINT s3api create-bucket \
+  --bucket $BUCKET_NAME \
+  --create-bucket-configuration LocationConstraint=$AWS_DEFAULT_REGION || true
 
-# Setup DynamoDB Table with dynamodb-local, see:
-# https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/getting-started-step-1.html
-echo "Creating DynamoDB-Local DynamoDB table: fragments"
-aws --endpoint-url=http://localhost:8000 \
-dynamodb create-table \
-    --table-name fragments \
-    --attribute-definitions \
-        AttributeName=ownerId,AttributeType=S \
-        AttributeName=id,AttributeType=S \
-    --key-schema \
-        AttributeName=ownerId,KeyType=HASH \
-        AttributeName=id,KeyType=RANGE \
-    --provisioned-throughput \
-        ReadCapacityUnits=10,WriteCapacityUnits=5
+echo "Waiting for DynamoDB Local..."
+until aws --endpoint-url=$DDB_ENDPOINT dynamodb list-tables > /dev/null 2>&1; do
+  sleep 2
+done
+echo "DynamoDB Local Ready"
 
-# Wait until the Fragments table exists in dynamodb-local, so we can use it, see:
-aws --endpoint-url=http://localhost:8000 dynamodb wait table-exists --table-name fragments
+echo "Creating DynamoDB-Local DynamoDB table: $TABLE_NAME"
+aws --endpoint-url=$DDB_ENDPOINT dynamodb create-table \
+  --table-name $TABLE_NAME \
+  --attribute-definitions AttributeName=ownerId,AttributeType=S AttributeName=id,AttributeType=S \
+  --key-schema AttributeName=ownerId,KeyType=HASH AttributeName=id,KeyType=RANGE \
+  --billing-mode PAY_PER_REQUEST || true
