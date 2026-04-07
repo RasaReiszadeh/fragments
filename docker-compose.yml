@@ -18,6 +18,9 @@ services:
       AWS_SECRET_ACCESS_KEY: test
     ports:
       - "8080:8080"
+    depends_on:
+      - dynamodb-local
+      - localstack
 
   dynamodb-local:
     image: amazon/dynamodb-local
@@ -26,10 +29,10 @@ services:
     command: ["-jar", "DynamoDBLocal.jar", "-inMemory"]
 
   localstack:
-    image: localstack/localstack
+    image: localstack/localstack:3.0.2
     ports:
       - "4566:4566"
     environment:
-      SERVICES: s3
-      DEFAULT_REGION: us-east-2
-      LOCALSTACK_ACKNOWLEDGE_ACCOUNT_REQUIREMENT: "1"
+      - SERVICES=s3
+      - DEFAULT_REGION=us-east-2
+      - DATA_DIR=/tmp/localstack/data

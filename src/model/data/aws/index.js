@@ -1,13 +1,21 @@
 const logger = require('../../../logger');
-const MemoryDB = require('../memory/memory-db');
 const s3Client = require('./s3Client');
+const ddbDocClient = require('./ddbDocClient');
+console.log('DEBUG ddbDocClient:', ddbDocClient);
+console.log('DEBUG typeof ddbDocClient.send:', typeof ddbDocClient.send);
+
 const {
   PutObjectCommand,
   GetObjectCommand,
   DeleteObjectCommand,
 } = require('@aws-sdk/client-s3');
 
-const db = MemoryDB;
+const {
+  PutCommand,
+  GetCommand,
+  QueryCommand,
+  DeleteCommand,
+} = require('@aws-sdk/lib-dynamodb');
 
 const streamToBuffer = (stream) =>
   new Promise((resolve, reject) => {
@@ -20,12 +28,44 @@ const streamToBuffer = (stream) =>
 
 module.exports = {
   async writeFragment(fragment) {
-    db.putFragment(fragment.ownerId, fragment.id, fragment);
-    return fragment;
+    const params = {
+      TableName: process.env.AWS_DYNAMODB_TABLE_NAME,
+      Item: fragment,
+    };
+
+    const command = new PutCommand(params);
+
+    try {
+      logger.info(
+        { TableName: params.TableName, fragmentId: fragment.id, ownerId: fragment.ownerId },
+        'Writing fragment metadata to DynamoDB'
+      );
+
+      await ddbDocClient.send(command);
+      return fragment;
+    } catch (err) {
+      logger.error({ err, params, fragment }, 'Error writing fragment to DynamoDB');
+      throw err;
+    }
   },
 
   async readFragment(ownerId, id) {
-    return db.getFragment(ownerId, id);
+    const params = {
+      TableName: process.env.AWS_DYNAMODB_TABLE_NAME,
+      Key: { ownerId, id },
+    };
+
+    const command = new GetCommand(params);
+
+    try {
+      logger.info({ TableName: params.TableName, ownerId, id }, 'Reading fragment metadata from DynamoDB');
+
+      const data = await ddbDocClient.send(command);
+      return data?.Item;
+    } catch (err) {
+      logger.error({ err, params }, 'Error reading fragment from DynamoDB');
+      throw err;
+    }
   },
 
   async writeFragmentData(ownerId, id, buffer) {
@@ -81,29 +121,64 @@ module.exports = {
     }
   },
 
-  async listFragments(ownerId) {
-    return db.listFragments(ownerId);
+  async listFragments(ownerId, expand = false) {
+    const params = {
+      TableName: process.env.AWS_DYNAMODB_TABLE_NAME,
+      KeyConditionExpression: 'ownerId = :ownerId',
+      ExpressionAttributeValues: {
+        ':ownerId': ownerId,
+      },
+    };
+
+    if (!expand) {
+      params.ProjectionExpression = 'id';
+    }
+
+    const command = new QueryCommand(params);
+
+    try {
+      logger.info(
+        { TableName: params.TableName, ownerId, expand },
+        'Listing fragments from DynamoDB'
+      );
+
+      const data = await ddbDocClient.send(command);
+
+      return !expand ? data?.Items.map((item) => item.id) : data?.Items;
+    } catch (err) {
+      logger.error({ err, params }, 'Error listing fragments from DynamoDB');
+      throw err;
+    }
   },
 
   async deleteFragment(ownerId, id) {
-    const params = {
+    const dynamoParams = {
+      TableName: process.env.AWS_DYNAMODB_TABLE_NAME,
+      Key: { ownerId, id },
+    };
+
+    const s3Params = {
       Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: `${ownerId}/${id}`,
     };
 
-    const command = new DeleteObjectCommand(params);
+    const dynamoCommand = new DeleteCommand(dynamoParams);
+    const s3Command = new DeleteObjectCommand(s3Params);
 
     try {
       logger.info(
-        { Bucket: params.Bucket, Key: params.Key },
+        { TableName: dynamoParams.TableName, ownerId, id },
+        'Deleting fragment metadata from DynamoDB'
+      );
+      await ddbDocClient.send(dynamoCommand);
+
+      logger.info(
+        { Bucket: s3Params.Bucket, Key: s3Params.Key },
         'Deleting fragment data from S3'
       );
-
-      await s3Client.send(command);
-      db.deleteFragment(ownerId, id);
+      await s3Client.send(s3Command);
     } catch (err) {
-      const { Bucket, Key } = params;
-      logger.error({ err, Bucket, Key }, 'Error deleting fragment data from S3');
+      logger.error({ err, ownerId, id }, 'Error deleting fragment from DynamoDB/S3');
       throw err;
     }
   },
