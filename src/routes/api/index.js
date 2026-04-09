@@ -25,4 +25,5 @@ router.get('/fragments/:id.:ext', authenticate(), require('./get-by-id'));
 router.get('/fragments/:id', authenticate(), require('./get-by-id'));
 router.post('/fragments', rawBody(), authenticate(), require('./post'));
 router.delete('/fragments/:id', authenticate(), require('./delete'));
+router.put('/fragments/:id', rawBody(), authenticate(), require('./put'));
 module.exports = router;
