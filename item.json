@@ -1,0 +1,4 @@
+{
+  "ownerId": { "S": "test-user1@fragments-testing.com" },
+  "id": { "S": "manual-test-1" }
+}
