@@ -6,6 +6,10 @@ const SUPPORTED_TYPES = new Set([
   'text/markdown',
   'text/html',
   'application/json',
+  'image/png',
+  'image/jpeg',
+  'image/gif',
+  'image/webp',
 ]);
 
 class Fragment {
@@ -28,15 +32,12 @@ class Fragment {
       err.status = 400;
       throw err;
     }
-
     if (!Fragment.isSupportedType(type)) {
       const err = new Error('unsupported type');
       err.status = 415;
       throw err;
     }
-
     const now = new Date().toISOString();
-
     return new Fragment({
       id: crypto.randomUUID(),
       ownerId,
@@ -57,7 +58,6 @@ class Fragment {
 
   get formats() {
     const formats = [];
-
     switch (this.type) {
       case 'text/plain':
         formats.push('txt');
@@ -71,10 +71,21 @@ class Fragment {
       case 'application/json':
         formats.push('json', 'txt');
         break;
+      case 'image/png':
+        formats.push('png', 'jpg', 'gif', 'webp');
+        break;
+      case 'image/jpeg':
+        formats.push('jpg', 'png', 'gif', 'webp');
+        break;
+      case 'image/gif':
+        formats.push('gif', 'png', 'jpg', 'webp');
+        break;
+      case 'image/webp':
+        formats.push('webp', 'png', 'jpg', 'gif');
+        break;
       default:
         break;
     }
-
     return formats;
   }
 
@@ -87,13 +98,11 @@ class Fragment {
       type: this.type,
       size: this.size,
     });
-
     return this;
   }
 
   async setData(value) {
     let buffer;
-
     if (Buffer.isBuffer(value)) {
       buffer = value;
     } else if (typeof value === 'string') {
@@ -103,13 +112,10 @@ class Fragment {
       err.status = 400;
       throw err;
     }
-
     this.size = buffer.length;
     this.updated = new Date().toISOString();
-
     await data.writeFragmentData(this.ownerId, this.id, buffer);
     await this.save();
-
     return this;
   }
 
@@ -124,11 +130,9 @@ class Fragment {
 
   static async list(ownerId, expand = false) {
     const ids = await data.listFragments(ownerId);
-
     if (!expand) {
       return ids;
     }
-
     const fragments = await Promise.all(ids.map((id) => Fragment.byId(ownerId, id)));
     return fragments.filter(Boolean);
   }

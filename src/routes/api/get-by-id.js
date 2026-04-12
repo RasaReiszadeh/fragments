@@ -1,7 +1,7 @@
 const Fragment = require('../../model/fragment');
 const MarkdownIt = require('markdown-it');
-
 const md = new MarkdownIt();
+const sharp = require('sharp');
 
 module.exports = async (req, res, next) => {
   try {
@@ -22,11 +22,13 @@ module.exports = async (req, res, next) => {
       throw err;
     }
 
+    // No conversion requested
     if (!ext) {
       res.set('Content-Type', fragment.type);
       return res.status(200).send(data);
     }
 
+    // Text conversions
     if (fragment.type === 'text/markdown' && ext === 'html') {
       const html = md.render(data.toString());
       res.set('Content-Type', 'text/html; charset=utf-8');
@@ -50,6 +52,21 @@ module.exports = async (req, res, next) => {
     ) {
       res.set('Content-Type', fragment.type);
       return res.status(200).send(data);
+    }
+
+    // Image conversions using sharp
+    const imageConversions = {
+      png: 'image/png',
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      gif: 'image/gif',
+      webp: 'image/webp',
+    };
+
+    if (fragment.type.startsWith('image/') && imageConversions[ext]) {
+      const converted = await sharp(data).toFormat(ext === 'jpg' ? 'jpeg' : ext).toBuffer();
+      res.set('Content-Type', imageConversions[ext]);
+      return res.status(200).send(converted);
     }
 
     const err = new Error('requested conversion is not supported');
