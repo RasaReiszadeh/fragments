@@ -15,7 +15,7 @@ describe('Fragment', () => {
   });
 
 test('rejects unsupported types', () => {
-  expect(() => Fragment.create({ ownerId: 'u1', type: 'image/png' })).toThrow(
+  expect(() => Fragment.create({ ownerId: 'u1', type: 'audio/mpeg' })).toThrow(
     /unsupported type/i
   );
 });

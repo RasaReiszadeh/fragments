@@ -51,7 +51,7 @@ describe('POST /v1/fragments', () => {
     const res = await request(app)
       .post('/v1/fragments')
       .auth('test-user1@fragments-testing.com', 'password1')
-      .set('Content-Type', 'image/png')
+      .set('Content-Type', 'audio/mpeg')
       .send(Buffer.from([1, 2, 3]));
 
     expect(res.statusCode).toBe(400);
