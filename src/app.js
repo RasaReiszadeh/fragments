@@ -7,7 +7,7 @@ const auth = require('./auth');
 const logger = require('./logger');
 const pino = require('pino-http')({ logger });
 
-// Create an express app instance
+
 const app = express();
 
 app.use(pino);
@@ -18,16 +18,16 @@ app.use(
     exposedHeaders: ['Location'],
   })
 );
-// passport
+
 const strategyName = auth.which === 'basic' ? 'basic' : 'bearer';
 passport.use(strategyName, auth.strategy());
 
 app.use(passport.initialize());
 
-// ✅ Use routes folder (NOT require('.'))
+
 app.use('/', require('./routes'));
 
-// 404
+
 app.use((req, res) => {
   res.status(404).json({
     status: 'error',
@@ -35,7 +35,7 @@ app.use((req, res) => {
   });
 });
 
-// Error handler
+
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   const status = err.status || 500;
